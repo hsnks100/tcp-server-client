@@ -83,19 +83,12 @@ int main(int argc, char **argv)
             PACKET pk, *pPk;
             if (FD_ISSET(sockfd, &allfds))
             {
-                if( (readn = read(sockfd, &pk, sizeof(pk))) == 0)
+                char bigBuffer[2048];
+                if( (readn = read(sockfd, bigBuffer, 2048)) == 0)
                 {
                     printf("close\n");
                     close(sockfd);
                     FD_CLR(sockfd, &readfds);
-                }
-                else
-                {
-                    pPk = (PACKET*)malloc(pk.totalLen);
-                    // 블록킹 가능성
-                    readn = read(sockfd, &pPk->raw, pk.totalLen - sizeof(PACKET)); 
-                    //...
-                    free(pPk);
                 }
                 if (--fd_num <= 0)
                     break;
