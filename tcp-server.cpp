@@ -6,12 +6,34 @@
 #include <sys/socket.h>
 #include <sys/time.h>
 #include <sys/select.h>
+#include <map>
 #include "packet.h"
+#include "circular-buffer.h"
 
 
 #define PORTNUM 3600
 #define SOCK_SETSIZE 1021
+
+pthread_mutex_t mutex = PTHREAD_MUTEX_INITIALIZER;
+pthread_cond_t thread_cond = PTHREAD_COND_INITIALIZER;
  
+
+std::map<int, CircularBuffer> buffers;
+
+
+void* recvProcessor(void* b) {
+    while(1) {
+        pthread_mutex_lock(&mutex); // 잠금을 생성한다. 
+        for(auto iter=buffers.begin(); iter != buffers.end(); ++iter) {
+            iter->second.read(
+        }
+        Packet pk;
+        if(buffers
+
+        pthread_mutex_unlock(&mutex); // 잠금을 생성한다. 
+
+    }
+}
 int main(int argc, char **argv)
 {
     int listen_fd, client_fd;
@@ -53,6 +75,11 @@ int main(int argc, char **argv)
         return 1;
     }   
      
+    
+
+
+    pthread_t thread;
+    pthread_create(&thread, NULL, recvProcessor, (void *)nullptr);
     FD_ZERO(&readfds);
     FD_SET(listen_fd, &readfds);
  
@@ -90,6 +117,12 @@ int main(int argc, char **argv)
                     close(sockfd);
                     FD_CLR(sockfd, &readfds);
                 }
+                else {
+                    pthread_mutex_lock(&mutex); // 잠금을 생성한다. 
+                    buffers[sockfd].write(bigbuffer, readn);
+                    pthread_mutex_unlock(&mutex); // 잠금을 생성한다.  
+                }
+
                 if (--fd_num <= 0)
                     break;
             }

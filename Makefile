@@ -9,7 +9,7 @@ CXX = g++
 CC = gcc
  
 
-OBJECTS = tcp-util.o
+OBJECTS = tcp-util.o circular-buffer.o
 
 
 all: tcp-server tcp-client
